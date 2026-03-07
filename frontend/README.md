@@ -10,7 +10,7 @@ The original frontend was a single 5.2MB obfuscated JavaScript bundle (`switch_m
 
 ## How the Original Was Reverse-Engineered
 
-1. The obfuscated bundle was deobfuscated using [webcrack](https://github.com/nicedash/webcrack)
+1. The obfuscated bundle was deobfuscated using [webcrack](https://github.com/j4k0xb/webcrack)
 2. The resulting code was analyzed to understand the component structure, API calls, and event handling
 3. Each component was rewritten in clean TypeScript, replacing bundled HA components with references to the HA runtime
 
