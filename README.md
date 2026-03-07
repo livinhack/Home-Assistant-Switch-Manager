@@ -13,6 +13,22 @@
 >
 > See the [latest release notes](https://github.com/macpit/Home-Assistant-Switch-Manager/releases/latest) for details.
 
+## Roadmap
+
+We're looking for community input on what to build next! Vote by opening an [issue](https://github.com/macpit/Home-Assistant-Switch-Manager/issues) or giving a thumbs up.
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| Blueprint Import via URL/YAML | Import community blueprints directly from a URL or paste YAML — no manual file copying | Planned |
+| Switch Cloning / Templates | Use a configured switch as a template for a new one (same type, different actions) | Planned |
+| Backup / Export | Export and import switch configurations as YAML for migration or backup | Planned |
+| Action Testing in Editor | Test-fire actions directly from the editor without pressing the physical switch | Planned |
+| Bulk Actions | Enable, disable or delete multiple switches at once | Idea |
+| Blueprint Community Store | A simple index of community blueprints installable with one click | Idea |
+| Visual Blueprint Editor | Create blueprints in the GUI instead of writing YAML by hand | Idea |
+
+**Want something else?** [Open an issue](https://github.com/macpit/Home-Assistant-Switch-Manager/issues) and tell us!
+
 ## About
 
 Switch manager is a centralised component to handle button pushes for your wireless switches. This includes anything passed through the event bus or MQTT. The component relies on switch blueprints which is easily made to allow GUI configuration of your switches and their button pushes. This helps remove clutter from the automations view as they will be handled independently by this component.
