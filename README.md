@@ -1,6 +1,6 @@
 # Home Assistant Switch Manager
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
+[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://my.home-assistant.io/redirect/hacs_repository/?owner=macpit&repository=Home-Assistant-Switch-Manager&category=integration)
 
 [![switch_manager_release](https://img.shields.io/github/v/release/macpit/Home-Assistant-Switch-Manager?style=flat-square&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager/releases/latest) [![switch_manager_stars](https://img.shields.io/github/stars/macpit/Home-Assistant-Switch-Manager?style=flat-square&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager/stargazers) [![switch_manager_contributors](https://img.shields.io/github/contributors/macpit/Home-Assistant-Switch-Manager?style=flat-square&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager)
 
@@ -49,10 +49,23 @@ Switch manager is a centralised component to handle button pushes for your wirel
 
 ## How to install
 
-1. Download the [component](https://github.com/macpit/Home-Assistant-Switch-Manager/releases)
-1. Place the folder `custom_components/switch_manager` into the `config/custom_components/` path of your home assistant installation
+### Option 1: HACS (recommended)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=macpit&repository=Home-Assistant-Switch-Manager&category=integration)
+
+1. Open HACS in your Home Assistant instance
+2. Click the three dots in the top right corner and select **Custom repositories**
+3. Add `https://github.com/macpit/Home-Assistant-Switch-Manager` with category **Integration**
+4. Search for "Switch Manager" and click **Download**
+5. Restart Home Assistant
+6. Go to Config -> Integrations and add Switch Manager
+
+### Option 2: Manual installation
+
+1. Download the [latest release](https://github.com/macpit/Home-Assistant-Switch-Manager/releases)
+1. Place the folder `custom_components/switch_manager` into the `config/custom_components/` path of your Home Assistant installation
 1. Restart Home Assistant
-1. Goto Config -> Integration then find and add Switch Manager
+1. Go to Config -> Integrations and add Switch Manager
 
 > [![Open your Home Assistant instance and start setting up a new integration.](https://my.home-assistant.io/badges/config_flow_start.svg)](https://my.home-assistant.io/redirect/config_flow_start/?domain=switch_manager)
 
