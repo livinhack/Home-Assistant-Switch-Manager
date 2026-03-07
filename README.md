@@ -2,7 +2,7 @@
 
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration)
 
-[![switch_manager_release](https://badgen.net/github/release/macpit/Home-Assistant-Switch-Manager/stable?scale=1.3&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager/releases) [![switch_manager_stars](https://badgen.net/github/stars/macpit/Home-Assistant-Switch-Manager?scale=1.3&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager/stargazers) [![switch_manager_contributors](https://badgen.net/github/contributors/macpit/Home-Assistant-Switch-Manager?scale=1.3&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager)
+[![switch_manager_release](https://img.shields.io/github/v/release/macpit/Home-Assistant-Switch-Manager?style=flat-square&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager/releases/latest) [![switch_manager_stars](https://img.shields.io/github/stars/macpit/Home-Assistant-Switch-Manager?style=flat-square&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager/stargazers) [![switch_manager_contributors](https://img.shields.io/github/contributors/macpit/Home-Assistant-Switch-Manager?style=flat-square&color=41bdf5)](https://github.com/macpit/Home-Assistant-Switch-Manager)
 
 ## About
 
