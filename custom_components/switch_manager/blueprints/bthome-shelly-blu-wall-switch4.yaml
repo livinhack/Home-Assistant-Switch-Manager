@@ -1,12 +1,12 @@
-name: Shelly BLU RC Button 4
+name: Shelly BLU Wall Switch 4
 service: BTHome
 event_type: bthome_ble_event
 identifier_key: device_id
 buttons:
-  - x: 0
-    y: 0
-    width: 330
-    height: 161
+  - x: 45
+    y: 45
+    width: 206
+    height: 205
     conditions:
       - key: event_class
         value: button_1
@@ -27,10 +27,10 @@ buttons:
         conditions:
           - key: event_type
             value: long_press
-  - x: 0
-    y: 161
-    width: 330
-    height: 161
+  - x: 45
+    y: 252
+    width: 206
+    height: 205
     conditions:
       - key: event_class
         value: button_2
@@ -51,10 +51,10 @@ buttons:
         conditions:
           - key: event_type
             value: long_press
-  - x: 0
-    y: 322
-    width: 330
-    height: 161
+  - x: 252
+    y: 45
+    width: 206
+    height: 205
     conditions:
       - key: event_class
         value: button_3
@@ -75,10 +75,10 @@ buttons:
         conditions:
           - key: event_type
             value: long_press
-  - x: 0
-    y: 483
-    width: 330
-    height: 161
+  - x: 252
+    y: 252
+    width: 206
+    height: 205
     conditions:
       - key: event_class
         value: button_4
