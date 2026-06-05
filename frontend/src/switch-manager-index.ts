@@ -18,6 +18,7 @@ import {
 } from "./helpers";
 
 import "./dialogs/blueprint-selector";
+import "./switch-manager-menu";
 
 // MDI icon paths
 const mdiPlus = "M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z";
@@ -108,7 +109,9 @@ export class SwitchManagerIndex extends LitElement {
     ></ha-svg-icon>`;
   }
 
-  private _getOverflowItems(item: SwitchListItem) {
+  private _getOverflowItems(
+    item: SwitchListItem
+  ): { path: string; label: string; action: () => void; warning?: boolean }[] {
     return [
       {
         path: item.enabled ? mdiStop : mdiPlay,
@@ -132,20 +135,15 @@ export class SwitchManagerIndex extends LitElement {
   render() {
     const data = this._filteredSortedData;
     return html`
-      <ha-app-layout>
-        <app-header slot="header" fixed>
-          <app-toolbar>
-            <ha-menu-button
-              .hass=${this.hass}
-              .narrow=${this.narrow}
-            ></ha-menu-button>
-            <div main-title>Switch Manager</div>
-            <div>v${this.panel.config.version}</div>
-          </app-toolbar>
-        </app-header>
-      </ha-app-layout>
-      <hui-view>
-        <hui-panel-view>
+      <div class="toolbar">
+        <ha-menu-button
+          .hass=${this.hass}
+          .narrow=${this.narrow}
+        ></ha-menu-button>
+        <div class="main-title">Switch Manager</div>
+        <div class="version">v${this.panel.config.version}</div>
+      </div>
+      <div class="view">
           <div class="content">
             <div class="search-bar">
               <ha-svg-icon .path=${mdiMagnify}></ha-svg-icon>
@@ -235,10 +233,19 @@ export class SwitchManagerIndex extends LitElement {
                               `
                             : nothing}
                           <div class="td col-actions" @click=${(e: Event) => e.stopPropagation()}>
-                            <ha-icon-overflow-menu
-                              .hass=${this.hass}
-                              .items=${this._getOverflowItems(item)}
-                            ></ha-icon-overflow-menu>
+                            <switch-manager-menu align="left">
+                              ${this._getOverflowItems(item).map(
+                                (mi) => html`
+                                  <div
+                                    class="menu-item ${mi.warning ? "warning" : ""}"
+                                    @click=${mi.action}
+                                  >
+                                    <ha-svg-icon .path=${mi.path}></ha-svg-icon>
+                                    ${mi.label}
+                                  </div>
+                                `
+                              )}
+                            </switch-manager-menu>
                           </div>
                         </div>
                       `
@@ -256,8 +263,7 @@ export class SwitchManagerIndex extends LitElement {
               </ha-fab>
             </div>
           </div>
-        </hui-panel-view>
-      </hui-view>
+      </div>
     `;
   }
 
@@ -360,22 +366,39 @@ export class SwitchManagerIndex extends LitElement {
     :host {
       display: block;
     }
-    hui-view {
+    .view {
       display: block;
-      height: calc(100vh - var(--header-height));
+      height: calc(100vh - var(--header-height, 56px));
       overflow-y: auto;
     }
-    app-toolbar {
-      height: var(--header-height);
-    }
-    app-header,
-    app-toolbar {
+    .toolbar {
+      display: flex;
+      align-items: center;
+      height: var(--header-height, 56px);
+      box-sizing: border-box;
+      padding: 0 12px;
       background-color: var(
         --app-header-background-color,
-        var(--mdc-theme-primary)
+        var(--primary-color)
       );
+      color: var(--app-header-text-color, var(--text-primary-color, #fff));
+      font-size: 20px;
       font-weight: 400;
-      color: var(--app-header-text-color, var(--mdc-theme-on-primary, #fff));
+    }
+    .toolbar .main-title {
+      flex: 1;
+      margin: 0 16px;
+    }
+    .toolbar .version {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+    .menu-item ha-svg-icon {
+      color: var(--secondary-text-color);
+    }
+    .menu-item.warning,
+    .menu-item.warning ha-svg-icon {
+      color: var(--error-color, #db4437);
     }
     .content {
       padding: 0;

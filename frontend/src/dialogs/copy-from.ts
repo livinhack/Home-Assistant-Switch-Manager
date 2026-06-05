@@ -2,6 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import type { HomeAssistant, SwitchConfig, CopyFromResponse } from "../types";
 import { wsType } from "../helpers";
+import "../switch-manager-dialog";
 
 @customElement("switch-manager-dialog-copy-from")
 export class SwitchManagerDialogCopyFrom extends LitElement {
@@ -36,33 +37,36 @@ export class SwitchManagerDialogCopyFrom extends LitElement {
   render() {
     if (!this._params) return html``;
     return html`
-      <ha-dialog open @closed=${this.closeDialog} heading="Copy From">
+      <switch-manager-dialog @closed=${this.closeDialog} heading="Copy From">
         <div class="content">
           ${this._switches.length === 0
             ? html`<p>No other switches with this blueprint found.</p>`
             : html`
-                <ha-formfield label="Copy variables">
-                  <ha-switch
+                <label class="checkbox">
+                  <input
+                    type="checkbox"
                     .checked=${this._copyVariables}
                     @change=${(e: Event) =>
-                      (this._copyVariables = (e.target as any).checked)}
-                  ></ha-switch>
-                </ha-formfield>
+                      (this._copyVariables = (e.target as HTMLInputElement).checked)}
+                  />
+                  Copy variables
+                </label>
                 <div class="switch-list">
                   ${this._switches.map(
                     (sw) => html`
-                      <mwc-list-item @click=${() => this._selectSwitch(sw)}>
+                      <div
+                        class="list-item"
+                        @click=${() => this._selectSwitch(sw)}
+                      >
                         ${sw.name}
-                      </mwc-list-item>
+                      </div>
                     `
                   )}
                 </div>
               `}
         </div>
-        <mwc-button slot="secondaryAction" @click=${this.closeDialog}>
-          Cancel
-        </mwc-button>
-      </ha-dialog>
+        <button slot="actions" @click=${this.closeDialog}>Cancel</button>
+      </switch-manager-dialog>
     `;
   }
 
@@ -83,12 +87,20 @@ export class SwitchManagerDialogCopyFrom extends LitElement {
     .switch-list {
       margin-top: 8px;
     }
-    mwc-list-item {
+    .list-item {
       cursor: pointer;
+      padding: 12px 8px;
+      border-radius: 4px;
     }
-    ha-formfield {
-      display: block;
+    .list-item:hover {
+      background: var(--secondary-background-color, rgba(127, 127, 127, 0.1));
+    }
+    .checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
       margin-bottom: 8px;
+      cursor: pointer;
     }
   `;
 }

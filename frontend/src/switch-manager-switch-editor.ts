@@ -23,6 +23,7 @@ import {
 } from "./helpers";
 
 import "./switch-manager-button-actions";
+import "./switch-manager-menu";
 
 // MDI icon paths
 const mdiArrowLeft =
@@ -83,113 +84,79 @@ export class SwitchManagerSwitchEditor extends LitElement {
     const hasError = !!this.config._error;
 
     return html`
-      <ha-app-layout>
-        <app-header slot="header" fixed>
-          <app-toolbar>
-            <ha-menu-button
-              .hass=${this.hass}
-              .narrow=${this.narrow}
-            ></ha-menu-button>
-            <ha-icon-button
-              .path=${mdiArrowLeft}
-              @click=${this._backTapped}
-            ></ha-icon-button>
-            <div main-title id="title-container">
-              <span>Switch Manager - ${this.config?.name}</span>
-            </div>
-            <div>
-              <ha-button-menu corner="BOTTOM_START" slot="toolbar-icon">
-                <ha-icon-button
-                  slot="trigger"
-                  .label=${this.hass.localize("ui.common.menu")}
-                  .path=${mdiDotsVertical}
-                ></ha-icon-button>
-                <mwc-list-item
-                  graphic="icon"
-                  .disabled=${!this.config || hasError}
-                  @click=${this._showIdentifierAutoDiscoveryDialog}
-                >
-                  Identifier
-                  <ha-svg-icon
-                    slot="graphic"
-                    .path=${mdiIdentifier}
-                  ></ha-svg-icon>
-                </mwc-list-item>
-                <mwc-list-item graphic="icon" @click=${this._showRenameDialog}>
-                  Rename
-                  <ha-svg-icon
-                    slot="graphic"
-                    .path=${mdiRename}
-                  ></ha-svg-icon>
-                </mwc-list-item>
-                <mwc-list-item graphic="icon" @click=${this._rotate}>
-                  Rotate
-                  <ha-svg-icon
-                    slot="graphic"
-                    .path=${mdiRotate}
-                  ></ha-svg-icon>
-                </mwc-list-item>
-                <mwc-list-item
-                  graphic="icon"
-                  .disabled=${!this.config || hasError}
-                  @click=${this._showVariablesEditorDialog}
-                >
-                  Variables
-                  <ha-svg-icon
-                    slot="graphic"
-                    .path=${mdiVariables}
-                  ></ha-svg-icon>
-                </mwc-list-item>
-                <mwc-list-item
-                  graphic="icon"
-                  .disabled=${!this.config || hasError}
-                  @click=${this._showCopyFromDialog}
-                >
-                  Copy From
-                  <ha-svg-icon
-                    slot="graphic"
-                    .path=${mdiCopy}
-                  ></ha-svg-icon>
-                </mwc-list-item>
-                <mwc-list-item
-                  graphic="icon"
-                  .disabled=${!this.config || this.is_new || hasError}
-                  @click=${this._toggleEnabled}
-                >
-                  ${this.config?.enabled ? "Disable" : "Enable"}
-                  <ha-svg-icon slot="graphic" .path=${"M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M9,9V15H15V9"}></ha-svg-icon>
-                </mwc-list-item>
-                <li divider role="separator"></li>
-                <mwc-list-item
-                  graphic="icon"
-                  .disabled=${!this.config || this.is_new || hasError}
-                  @click=${this._toggleDebug}
-                >
-                  Debug
-                  <ha-svg-icon slot="graphic" .path=${"M14,12H10V10H14M14,16H10V14H14M20,8H17.19C16.74,7.22 16.12,6.55 15.37,6.04L17,4.41L15.59,3L13.42,5.17C12.96,5.06 12.5,5 12,5C11.5,5 11.04,5.06 10.59,5.17L8.41,3L7,4.41L8.62,6.04C7.88,6.55 7.26,7.22 6.81,8H4V10H6.09C6.04,10.33 6,10.66 6,11V12H4V14H6V15C6,15.34 6.04,15.67 6.09,16H4V18H6.81C7.85,19.79 9.78,21 12,21C14.22,21 16.15,19.79 17.19,18H20V16H17.91C17.96,15.67 18,15.34 18,15V14H20V12H18V11C18,10.66 17.96,10.33 17.91,10H20V8Z"}></ha-svg-icon>
-                </mwc-list-item>
-                <li divider role="separator"></li>
-                <mwc-list-item
-                  .disabled=${this.is_new}
-                  class=${classMap({ warning: !this.is_new })}
-                  graphic="icon"
-                  @click=${this._deleteConfirm}
-                >
-                  Delete
-                  <ha-svg-icon
-                    class=${classMap({ warning: !this.is_new })}
-                    slot="graphic"
-                    .path=${mdiDelete}
-                  ></ha-svg-icon>
-                </mwc-list-item>
-              </ha-button-menu>
-            </div>
-          </app-toolbar>
-        </app-header>
-      </ha-app-layout>
+      <div class="toolbar">
+        <ha-menu-button
+          .hass=${this.hass}
+          .narrow=${this.narrow}
+        ></ha-menu-button>
+        <ha-icon-button
+          .path=${mdiArrowLeft}
+          @click=${this._backTapped}
+        ></ha-icon-button>
+        <div class="main-title">Switch Manager - ${this.config?.name}</div>
+        <switch-manager-menu align="left">
+          <div
+            class="menu-item"
+            ?disabled=${!this.config || hasError}
+            @click=${this._showIdentifierAutoDiscoveryDialog}
+          >
+            <ha-svg-icon .path=${mdiIdentifier}></ha-svg-icon>
+            Identifier
+          </div>
+          <div class="menu-item" @click=${this._showRenameDialog}>
+            <ha-svg-icon .path=${mdiRename}></ha-svg-icon>
+            Rename
+          </div>
+          <div class="menu-item" @click=${this._rotate}>
+            <ha-svg-icon .path=${mdiRotate}></ha-svg-icon>
+            Rotate
+          </div>
+          <div
+            class="menu-item"
+            ?disabled=${!this.config || hasError}
+            @click=${this._showVariablesEditorDialog}
+          >
+            <ha-svg-icon .path=${mdiVariables}></ha-svg-icon>
+            Variables
+          </div>
+          <div
+            class="menu-item"
+            ?disabled=${!this.config || hasError}
+            @click=${this._showCopyFromDialog}
+          >
+            <ha-svg-icon .path=${mdiCopy}></ha-svg-icon>
+            Copy From
+          </div>
+          <div
+            class="menu-item"
+            ?disabled=${!this.config || this.is_new || hasError}
+            @click=${this._toggleEnabled}
+          >
+            <ha-svg-icon .path=${"M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4M9,9V15H15V9"}></ha-svg-icon>
+            ${this.config?.enabled ? "Disable" : "Enable"}
+          </div>
+          <div class="menu-divider"></div>
+          <div
+            class="menu-item"
+            ?disabled=${!this.config || this.is_new || hasError}
+            @click=${this._toggleDebug}
+          >
+            <ha-svg-icon .path=${"M14,12H10V10H14M14,16H10V14H14M20,8H17.19C16.74,7.22 16.12,6.55 15.37,6.04L17,4.41L15.59,3L13.42,5.17C12.96,5.06 12.5,5 12,5C11.5,5 11.04,5.06 10.59,5.17L8.41,3L7,4.41L8.62,6.04C7.88,6.55 7.26,7.22 6.81,8H4V10H6.09C6.04,10.33 6,10.66 6,11V12H4V14H6V15C6,15.34 6.04,15.67 6.09,16H4V18H6.81C7.85,19.79 9.78,21 12,21C14.22,21 16.15,19.79 17.19,18H20V16H17.91C17.96,15.67 18,15.34 18,15V14H20V12H18V11C18,10.66 17.96,10.33 17.91,10H20V8Z"}></ha-svg-icon>
+            Debug
+          </div>
+          <div class="menu-divider"></div>
+          <div
+            class="menu-item ${classMap({ warning: !this.is_new })}"
+            ?disabled=${this.is_new}
+            @click=${this._deleteConfirm}
+          >
+            <ha-svg-icon .path=${mdiDelete}></ha-svg-icon>
+            Delete
+          </div>
+        </switch-manager-menu>
+      </div>
 
-      <hui-view>
-        <hui-panel-view>
+      <div class="view">
           ${hasError ? nothing : html`<h3 id="blueprint-name">${this.blueprint?.service} / ${this.blueprint?.name}</h3>`}
 
           <div id="switch-image" rotate="${this.config.rotate}">
@@ -215,7 +182,7 @@ export class SwitchManagerSwitchEditor extends LitElement {
                     <ha-alert alert-type="error">
                       ${this._errors}
                       ${this.config.is_mismatch
-                        ? html`<mwc-button slot="action" @click=${this._fixMismatch}>Fix</mwc-button>`
+                        ? html`<button slot="action" class="alert-action" @click=${this._fixMismatch}>Fix</button>`
                         : ""}
                     </ha-alert>
                   `
@@ -224,7 +191,7 @@ export class SwitchManagerSwitchEditor extends LitElement {
                 ? html`
                     <ha-alert alert-type="info">
                       Switch is disabled
-                      <mwc-button slot="action" @click=${this._toggleEnabled}>Enable</mwc-button>
+                      <button slot="action" class="alert-action" @click=${this._toggleEnabled}>Enable</button>
                     </ha-alert>
                   `
                 : ""}
@@ -250,20 +217,15 @@ export class SwitchManagerSwitchEditor extends LitElement {
                         @value-changed=${this._modeValueChanged}
                       ></ha-selector-select>
                     </h2>
-                    <ha-button-menu corner="TOP_START" slot="toolbar-icon">
-                      <ha-icon-button
-                        slot="trigger"
-                        .label=${this.hass.localize("ui.common.menu")}
-                        .path=${mdiDotsVertical}
-                      ></ha-icon-button>
-                      <mwc-list-item graphic="icon" @click=${this._toggleYaml}>
-                        ${this._is_yaml ? "Visual Editor" : "Yaml Editor"}
-                        <ha-svg-icon slot="graphic" .path=${this._is_yaml
+                    <switch-manager-menu align="left">
+                      <div class="menu-item" @click=${this._toggleYaml}>
+                        <ha-svg-icon .path=${this._is_yaml
                           ? "M21 13.1C20.9 13.1 20.7 13.2 20.6 13.3L19.6 14.3L21.7 16.4L22.7 15.4C22.9 15.2 22.9 14.8 22.7 14.6L21.4 13.3C21.3 13.2 21.2 13.1 21 13.1M19.1 14.9L13 20.9V23H15.1L21.2 16.9L19.1 14.9M21 3H13V9H21V3M19 7H15V5H19V7M13 18.06V11H21V11.1C20.24 11.1 19.57 11.5 19.19 11.89L18.07 13H15V16.07L13 18.06M11 3H3V13H11V3M9 11H5V5H9V11M11 20.06V15H3V21H11V20.06M9 19H5V17H9V19Z"
                           : "M8,12H16V14H8V12M10,20H6V4H13V9H18V12.1L20,10.1V8L14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H10V20M8,18H12.1L13,17.1V16H8V18M20.2,13C20.3,13 20.5,13.1 20.6,13.2L21.9,14.5C22.1,14.7 22.1,15.1 21.9,15.3L20.9,16.3L18.8,14.2L19.8,13.2C19.9,13.1 20,13 20.2,13M20.2,16.9L14.1,23H12V20.9L18.1,14.8L20.2,16.9Z"
                         }></ha-svg-icon>
-                      </mwc-list-item>
-                    </ha-button-menu>
+                        ${this._is_yaml ? "Visual Editor" : "Yaml Editor"}
+                      </div>
+                    </switch-manager-menu>
                   </div>
                   ${this._is_yaml
                     ? html`<ha-yaml-editor
@@ -299,8 +261,7 @@ export class SwitchManagerSwitchEditor extends LitElement {
               </ha-fab>
             </div>
           `}
-        </hui-panel-view>
-      </hui-view>
+        </div>
     `;
   }
 
@@ -745,23 +706,46 @@ export class SwitchManagerSwitchEditor extends LitElement {
     :host {
       --max-width: 1040px;
     }
-    ha-app-layout {
-      z-index: 5;
-    }
-    app-toolbar {
-      height: var(--header-height);
-    }
-    app-header,
-    app-toolbar {
+    .toolbar {
+      display: flex;
+      align-items: center;
+      height: var(--header-height, 56px);
+      box-sizing: border-box;
+      padding: 0 12px;
       background-color: var(
         --app-header-background-color,
-        var(--mdc-theme-primary)
+        var(--app-header-background-color, var(--primary-color))
       );
+      color: var(--app-header-text-color, var(--text-primary-color, #fff));
+      font-size: 20px;
       font-weight: 400;
-      color: var(--app-header-text-color, var(--mdc-theme-on-primary, #fff));
+      position: sticky;
+      top: 0;
+      z-index: 5;
     }
-    mwc-list-item {
-      min-width: 165px;
+    .toolbar .main-title {
+      flex: 1;
+      margin: 0 16px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .menu-item ha-svg-icon {
+      color: var(--secondary-text-color);
+    }
+    .menu-item.warning,
+    .menu-item.warning ha-svg-icon {
+      color: var(--error-color, #db4437);
+    }
+    .alert-action {
+      background: none;
+      border: none;
+      cursor: pointer;
+      font: inherit;
+      text-transform: uppercase;
+      font-weight: 500;
+      color: var(--primary-color);
+      padding: 8px 12px;
     }
     ha-card {
       margin: 0 auto;
@@ -775,8 +759,8 @@ export class SwitchManagerSwitchEditor extends LitElement {
     h3 {
       padding-left: 25px;
     }
-    hui-view {
-      height: calc(100vh - var(--header-height));
+    .view {
+      height: calc(100vh - var(--header-height, 56px));
       display: block;
       overflow-y: auto;
       padding-bottom: 3em;

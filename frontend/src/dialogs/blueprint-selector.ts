@@ -2,6 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import type { HomeAssistant, Blueprint, BlueprintsResponse } from "../types";
 import { wsType, navigateTo, navigate, assetUrl } from "../helpers";
+import "../switch-manager-dialog";
 
 @customElement("switch-manager-dialog-blueprint-selector")
 export class SwitchManagerDialogBlueprintSelector extends LitElement {
@@ -41,11 +42,15 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
       : this._blueprints;
 
     return html`
-      <ha-dialog open @closed=${this.closeDialog} heading="Select Blueprint">
-        <search-input
-          .filter=${this._filter}
-          @value-changed=${(e: CustomEvent) => (this._filter = e.detail.value)}
-        ></search-input>
+      <switch-manager-dialog @closed=${this.closeDialog} heading="Select Blueprint">
+        <input
+          class="search"
+          type="text"
+          placeholder="Search"
+          .value=${this._filter}
+          @input=${(e: Event) =>
+            (this._filter = (e.target as HTMLInputElement).value)}
+        />
         <div class="blueprints">
           ${filtered.map(
             (bp) => html`
@@ -71,10 +76,8 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
             `
           )}
         </div>
-        <mwc-button slot="secondaryAction" @click=${this.closeDialog}>
-          Cancel
-        </mwc-button>
-      </ha-dialog>
+        <button slot="actions" @click=${this.closeDialog}>Cancel</button>
+      </switch-manager-dialog>
     `;
   }
 
@@ -125,9 +128,17 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
       color: var(--secondary-text-color);
       font-size: 0.85em;
     }
-    search-input {
+    .search {
       display: block;
+      width: 100%;
+      box-sizing: border-box;
       margin-bottom: 8px;
+      padding: 8px 12px;
+      border: 1px solid var(--divider-color, rgba(127, 127, 127, 0.3));
+      border-radius: 6px;
+      background: var(--secondary-background-color, transparent);
+      color: var(--primary-text-color);
+      font: inherit;
     }
   `;
 }

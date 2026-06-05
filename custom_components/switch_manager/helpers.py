@@ -1,7 +1,7 @@
 """Helpers for switch_manager integration."""
 import json, pathlib, os, shutil, enum
 from homeassistant.core import HomeAssistant
-from annotatedyaml.loader import _find_files, load_yaml
+from annotatedyaml.loader import load_yaml
 from .const import (
     LOGGER, 
     DOMAIN, 
@@ -45,9 +45,24 @@ async def deploy_blueprints( hass ):
 
     await hass.async_add_executor_job(doFiles)
 
+def _find_yaml_files( folder ):
+    """Recursively find blueprint YAML files, skipping hidden files/dirs.
+
+    Replaces annotatedyaml.loader._find_files (a private API) so we no longer depend
+    on a non-public symbol of a separately versioned package. Behaviour is preserved:
+    recursive walk, sorted per directory, ignores dot-files/dot-dirs.
+    """
+    results = []
+    for root, dirs, files in os.walk(folder, topdown=True):
+        dirs[:] = [d for d in dirs if not d.startswith('.')]
+        for basename in sorted(files):
+            if not basename.startswith('.') and basename.endswith('.yaml'):
+                results.append(os.path.join(root, basename))
+    return results
+
 async def load_blueprints( hass ):
     folder = pathlib.Path(hass.config.path(BLUEPRINTS_FOLDER, DOMAIN))
-    files = await hass.loop.run_in_executor(None, _find_files, folder, "*.yaml")
+    files = await hass.loop.run_in_executor(None, _find_yaml_files, folder)
 
     results = []
     def doFiles():
@@ -120,5 +135,5 @@ def _get_switch_config( hass: HomeAssistant, _id: str ):
     return hass.data[DOMAIN][CONF_MANAGED_SWITCHES].get(_id)
 
 async def _remove_switch_config( hass: HomeAssistant, _id: str ):
-    hass.data[DOMAIN][CONF_MANAGED_SWITCHES][_id].stop()
+    hass.data[DOMAIN][CONF_MANAGED_SWITCHES][_id].unload()
     del hass.data[DOMAIN][CONF_MANAGED_SWITCHES][_id]

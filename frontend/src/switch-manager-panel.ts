@@ -1,9 +1,27 @@
 import { LitElement, html, css } from "lit";
 import { customElement, property, state } from "lit/decorators.js";
+import { loadHaComponents } from "@kipk/load-ha-components";
 import type { HomeAssistant, Panel, Route } from "./types";
 
 import "./switch-manager-index";
 import "./switch-manager-switch-editor";
+
+// HA runtime components the panel + action editor depend on. loadHaComponents()
+// drives HA's config/automation route loader, which transitively registers the
+// whole selector/service-control tree the editor needs (so they match the live
+// hass instead of being frozen in our bundle).
+const HA_COMPONENTS = [
+  "ha-automation-action",
+  "ha-service-control",
+  "ha-selector",
+  "ha-yaml-editor",
+  "ha-card",
+  "ha-fab",
+  "ha-alert",
+  "ha-svg-icon",
+  "ha-icon-button",
+  "ha-menu-button",
+];
 
 @customElement("switch-manager-panel")
 export class SwitchManagerPanel extends LitElement {
@@ -12,6 +30,7 @@ export class SwitchManagerPanel extends LitElement {
   @property({ attribute: false }) panel!: Panel;
 
   @state() private _params: Record<string, string> = {};
+  @state() private _componentsLoaded = false;
   private _route?: Route;
 
   @property({ attribute: false })
@@ -32,6 +51,9 @@ export class SwitchManagerPanel extends LitElement {
   }
 
   render() {
+    if (!this._componentsLoaded) {
+      return html`<div class="loading">Loading…</div>`;
+    }
     if ("action" in this._params) {
       return html`
         <switch-manager-switch-editor
@@ -53,12 +75,25 @@ export class SwitchManagerPanel extends LitElement {
     `;
   }
 
-  firstUpdated() {
+  async firstUpdated() {
     this.hass.loadFragmentTranslation("config");
     this.hass.loadBackendTranslation("title");
     this.hass.loadBackendTranslation("device_automation");
     this.hass.loadBackendTranslation("config");
+    // Backend translations the selector/service-control tree needs to resolve
+    // entity states, services and selector labels (without these the Option
+    // dropdown and Targets stay empty).
+    this.hass.loadBackendTranslation("services");
+    this.hass.loadBackendTranslation("selector");
+    this.hass.loadBackendTranslation("entity_component");
     this._applyTheme();
+    try {
+      await loadHaComponents(HA_COMPONENTS);
+    } catch (err) {
+      // Non-fatal: log and continue so the panel still renders.
+      console.error("switch_manager: loadHaComponents failed", err);
+    }
+    this._componentsLoaded = true;
   }
 
   updated(changedProps: Map<string, unknown>) {
@@ -83,6 +118,10 @@ export class SwitchManagerPanel extends LitElement {
   static styles = css`
     :host {
       display: block;
+    }
+    .loading {
+      padding: 24px;
+      color: var(--secondary-text-color);
     }
   `;
 }

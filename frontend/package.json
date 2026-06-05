@@ -8,15 +8,16 @@
     "watch": "rollup -c --watch"
   },
   "dependencies": {
+    "@kipk/load-ha-components": "^1.0.3",
     "lit": "^3.2.0"
   },
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.1.0",
+    "home-assistant-js-websocket": "^9.4.0",
     "rollup": "^4.28.0",
     "tslib": "^2.8.0",
-    "typescript": "^5.7.0",
-    "home-assistant-js-websocket": "^9.4.0"
+    "typescript": "^5.7.0"
   }
 }

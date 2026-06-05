@@ -8,7 +8,7 @@ export default {
   input: "src/switch-manager-panel.ts",
   output: {
     file: "../custom_components/switch_manager/assets/switch_manager_panel.js",
-    format: "iife",
+    format: "es",
     inlineDynamicImports: true,
     sourcemap: !production,
   },

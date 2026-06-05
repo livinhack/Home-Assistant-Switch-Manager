@@ -1,15 +1,16 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property, state, query } from "lit/decorators.js";
+import { customElement, property, query } from "lit/decorators.js";
 import type { HomeAssistant, BlueprintButtonAction, SwitchConfigButtonAction } from "./types";
 
+// Custom tab strip — replaces HA's legacy paper-tabs/paper-tab, which current HA
+// no longer auto-loads. Plain buttons + CSS, so it never drifts with HA.
 @customElement("switch-manager-button-actions")
 export class SwitchManagerButtonActions extends LitElement {
   @property({ attribute: false }) hass!: HomeAssistant;
   @property({ attribute: false }) blueprint_actions?: BlueprintButtonAction[];
   @property({ attribute: false }) config_actions?: SwitchConfigButtonAction[];
   @property({ type: Number, reflect: true }) index = 0;
-  @state() private scrollable = true;
-  @query("paper-tabs", true) tabs?: HTMLElement;
+  @query(".tabs", true) tabs?: HTMLElement;
 
   render() {
     if (!this.blueprint_actions || this.blueprint_actions.length <= 1) {
@@ -17,48 +18,29 @@ export class SwitchManagerButtonActions extends LitElement {
     }
 
     return html`
-      <paper-tabs
-        selected="${this.index}"
-        @iron-select=${this._tabChanged}
-        ?scrollable=${this.scrollable}
-      >
+      <div class="tabs" role="tablist">
         ${this.blueprint_actions.map((action, idx) => {
           const seqLen = this.config_actions?.[idx]?.sequence?.length || 0;
           return html`
-            <paper-tab index="${idx}">
-              ${action.title}
-              ${seqLen
-                ? html`<ha-assist-chip
-                    filled
-                    .label="${seqLen}"
-                  ></ha-assist-chip>`
-                : ""}
+            <button
+              class="tab ${idx === this.index ? "selected" : ""}"
+              role="tab"
+              index="${idx}"
+              @click=${() => this._select(idx)}
+            >
+              <span class="title">${action.title}</span>
+              ${seqLen ? html`<span class="chip">${seqLen}</span>` : ""}
               ${action.title === "init"
-                ? html`<div id="init-suffix">
-                    <ha-svg-icon
-                      slot="graphic"
-                      .path=${"M7,8L2.5,12L7,16V8M17,8V16L21.5,12L17,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z"}
-                    ></ha-svg-icon>
-                  </div>`
+                ? html`<ha-svg-icon
+                    class="init-icon"
+                    .path=${"M7,8L2.5,12L7,16V8M17,8V16L21.5,12L17,8M12,10A2,2 0 0,0 10,12A2,2 0 0,0 12,14A2,2 0 0,0 14,12A2,2 0 0,0 12,10Z"}
+                  ></ha-svg-icon>`
                 : ""}
-            </paper-tab>
+            </button>
           `;
         })}
-      </paper-tabs>
+      </div>
     `;
-  }
-
-  async updated(changedProps: Map<string, unknown>) {
-    if (!this.tabs) return;
-    if (changedProps.has("config_actions")) {
-      this.scrollable = true;
-      await this.updateComplete;
-      let totalWidth = 0;
-      for (const child of Array.from(this.tabs.children)) {
-        totalWidth += (child as HTMLElement).offsetWidth;
-      }
-      this.scrollable = totalWidth > this.tabs.offsetWidth;
-    }
   }
 
   flash(index: number) {
@@ -70,13 +52,8 @@ export class SwitchManagerButtonActions extends LitElement {
     }
   }
 
-  private _tabChanged(e: CustomEvent) {
-    const detail = e.detail as { item: HTMLElement };
-    const parent = detail.item.parentNode as HTMLElement;
-    const idx = Array.from(parent.children).indexOf(detail.item);
-    this.dispatchEvent(
-      new CustomEvent("changed", { detail: { index: idx } })
-    );
+  private _select(idx: number) {
+    this.dispatchEvent(new CustomEvent("changed", { detail: { index: idx } }));
   }
 
   static styles = css`
@@ -89,49 +66,54 @@ export class SwitchManagerButtonActions extends LitElement {
     :host {
       display: flex;
       justify-content: center;
-      --paper-tab-ink: transparent;
-      --paper-tabs-selection-bar-color: transparent;
     }
-    paper-tabs {
-      display: grid;
+    .tabs {
+      display: flex;
       justify-content: center;
-      flex: 1 1 0%;
-      height: var(--header-height);
+      flex-wrap: wrap;
+      gap: 4px;
+      max-width: 100%;
+      overflow-x: auto;
       margin: 0 10px;
     }
-    paper-tabs[scrollable] {
-      display: flex;
-    }
-    paper-tab {
-      padding: 0px 32px;
-      box-sizing: border-box;
+    .tab {
+      position: relative;
+      background: none;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--secondary-text-color);
+      font: inherit;
       text-transform: uppercase;
+      padding: 12px 32px;
+      cursor: pointer;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
     }
-    paper-tab[feedback] {
+    .tab.selected {
+      border-bottom-color: var(--primary-color);
+      color: var(--primary-color);
+    }
+    .tab[feedback] {
       animation: 0.4s feedback;
       animation-iteration-count: 2;
       animation-direction: alternate;
     }
-    paper-tab.iron-selected {
-      border-bottom: 2px solid var(--primary-color);
-      color: var(--primary-color);
-    }
-    ha-assist-chip {
-      position: absolute;
-      top: 0;
-      right: -32px;
-      --_leading-space: 12px;
-      --_trailing-space: 12px;
-    }
-    #init-suffix {
+    .chip {
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      flex: auto;
-      position: relative;
-      padding: 0 12px;
-      overflow: hidden;
-      vertical-align: middle;
+      min-width: 20px;
+      height: 20px;
+      padding: 0 6px;
+      border-radius: 10px;
+      font-size: 12px;
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
+    }
+    .init-icon {
+      --mdc-icon-size: 18px;
     }
   `;
 }

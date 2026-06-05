@@ -42,7 +42,7 @@ async def async_setup( hass: HomeAssistant, config: ConfigType ):
     
     async def reload_all( call ):
         for switch_id in hass.data[DOMAIN][CONF_MANAGED_SWITCHES]:
-            hass.data[DOMAIN][CONF_MANAGED_SWITCHES][switch_id].stop()
+            hass.data[DOMAIN][CONF_MANAGED_SWITCHES][switch_id].unload()
         hass.data[DOMAIN][CONF_BLUEPRINTS] = {}
         hass.data[DOMAIN][CONF_MANAGED_SWITCHES] = {}
 
@@ -76,7 +76,7 @@ async def async_setup_entry( hass, config_entry ):
 async def async_unload_entry( hass: HomeAssistant, config_entry ):
     """Unload a config entry."""
     for switch_id in hass.data[DOMAIN].get(CONF_MANAGED_SWITCHES, {}):
-        hass.data[DOMAIN][CONF_MANAGED_SWITCHES][switch_id].stop()
+        hass.data[DOMAIN][CONF_MANAGED_SWITCHES][switch_id].unload()
     return True
 
 async def async_migrate( hass, in_dev ):

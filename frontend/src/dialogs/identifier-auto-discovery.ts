@@ -2,6 +2,7 @@ import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import type { HomeAssistant, Blueprint } from "../types";
 import { wsType } from "../helpers";
+import "../switch-manager-dialog";
 
 @customElement("switch-manager-dialog-identifier-auto-discovery")
 export class SwitchManagerDialogIdentifierAutoDiscovery extends LitElement {
@@ -59,18 +60,38 @@ export class SwitchManagerDialogIdentifierAutoDiscovery extends LitElement {
   render() {
     if (!this._params) return html``;
     return html`
-      <ha-dialog
-        open
+      <switch-manager-dialog
         @closed=${this.closeDialog}
         heading="Switch Identifier"
       >
         <div class="content">
-          <ha-textfield
+          <input
+            class="text-input"
+            type="text"
+            placeholder="Identifier"
             .value=${this._identifier}
             @input=${(e: InputEvent) =>
               (this._identifier = (e.target as HTMLInputElement).value)}
-            label="Identifier"
-          ></ha-textfield>
+          />
+
+          ${this._params.blueprint?.mqtt_topic_format
+            ? html`<div class="identifier-ref">
+                MQTT Discovery Topic:
+                <b>${this._params.blueprint.mqtt_topic_format}</b>
+                |
+                <a href="/config/mqtt" target="_blank" rel="noreferrer"
+                  >MQTT Tool</a
+                >
+              </div>`
+            : this._params.blueprint?.event_type
+            ? html`<div class="identifier-ref">
+                Event Type: <b>${this._params.blueprint.event_type}</b>
+                |
+                <a href="/developer-tools/event" target="_blank" rel="noreferrer"
+                  >Event Tool</a
+                >
+              </div>`
+            : ""}
 
           ${this._listening
             ? html`
@@ -79,15 +100,18 @@ export class SwitchManagerDialogIdentifierAutoDiscovery extends LitElement {
                     Press a button on your switch to auto-discover its
                     identifier...
                   </p>
-                  <ha-circular-progress indeterminate></ha-circular-progress>
+                  <div class="spinner"></div>
                   ${this._discovered.length
                     ? html`
                         <div class="discovered-list">
                           ${this._discovered.map(
                             (id) => html`
-                              <mwc-list-item @click=${() => this._selectIdentifier(id)}>
+                              <div
+                                class="list-item"
+                                @click=${() => this._selectIdentifier(id)}
+                              >
                                 ${id}
-                              </mwc-list-item>
+                              </div>
                             `
                           )}
                         </div>
@@ -97,13 +121,9 @@ export class SwitchManagerDialogIdentifierAutoDiscovery extends LitElement {
               `
             : ""}
         </div>
-        <mwc-button slot="secondaryAction" @click=${this.closeDialog}>
-          Cancel
-        </mwc-button>
-        <mwc-button slot="primaryAction" @click=${this._save}>
-          Save
-        </mwc-button>
-      </ha-dialog>
+        <button slot="actions" @click=${this.closeDialog}>Cancel</button>
+        <button slot="actions" @click=${this._save}>Save</button>
+      </switch-manager-dialog>
     `;
   }
 
@@ -120,8 +140,27 @@ export class SwitchManagerDialogIdentifierAutoDiscovery extends LitElement {
     .content {
       min-width: 300px;
     }
-    ha-textfield {
+    .text-input {
       width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid var(--divider-color, rgba(127, 127, 127, 0.3));
+      border-radius: 6px;
+      background: var(--secondary-background-color, transparent);
+      color: var(--primary-text-color);
+      font: inherit;
+    }
+    .text-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
+    }
+    .identifier-ref {
+      margin-top: 16px;
+      font-size: 0.9em;
+      color: var(--secondary-text-color);
+    }
+    .identifier-ref a {
+      color: var(--primary-color);
     }
     .discovery {
       margin-top: 16px;
@@ -131,11 +170,27 @@ export class SwitchManagerDialogIdentifierAutoDiscovery extends LitElement {
       margin-top: 8px;
       text-align: left;
     }
-    mwc-list-item {
+    .list-item {
       cursor: pointer;
+      padding: 12px 8px;
+      border-radius: 4px;
     }
-    mwc-list-item:hover {
-      background: var(--secondary-background-color);
+    .list-item:hover {
+      background: var(--secondary-background-color, rgba(127, 127, 127, 0.1));
+    }
+    .spinner {
+      width: 32px;
+      height: 32px;
+      margin: 12px auto;
+      border: 3px solid var(--divider-color, rgba(127, 127, 127, 0.3));
+      border-top-color: var(--primary-color);
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
     }
   `;
 }

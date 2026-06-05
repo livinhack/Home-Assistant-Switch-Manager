@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import "../switch-manager-dialog";
 
 @customElement("switch-manager-dialog-variables-editor")
 export class SwitchManagerDialogVariablesEditor extends LitElement {
@@ -21,7 +22,7 @@ export class SwitchManagerDialogVariablesEditor extends LitElement {
   render() {
     if (!this._params) return html``;
     return html`
-      <ha-dialog open @closed=${this.closeDialog} heading="Variables">
+      <switch-manager-dialog @closed=${this.closeDialog} heading="Variables">
         <div class="content">
           <ha-yaml-editor
             .value=${this._variables}
@@ -29,13 +30,9 @@ export class SwitchManagerDialogVariablesEditor extends LitElement {
               (this._variables = e.detail.value)}
           ></ha-yaml-editor>
         </div>
-        <mwc-button slot="secondaryAction" @click=${this.closeDialog}>
-          Cancel
-        </mwc-button>
-        <mwc-button slot="primaryAction" @click=${this._save}>
-          Save
-        </mwc-button>
-      </ha-dialog>
+        <button slot="actions" @click=${this.closeDialog}>Cancel</button>
+        <button slot="actions" @click=${this._save}>Save</button>
+      </switch-manager-dialog>
     `;
   }
 

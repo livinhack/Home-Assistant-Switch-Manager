@@ -332,7 +332,9 @@ class ManagedSwitchConfig:
             self.variables.update(data)
 
     def buildButtons( self, buttons_config ):
-        self.stop_running_scripts()
+        # Existing scripts are about to be replaced by freshly built ones, so fully
+        # unload (not just stop) the old ones to release their resources.
+        self.unload_scripts()
         self.buttons = []
         # No blueprint was loaded and is a string
         if not self.valid_blueprint:
@@ -400,7 +402,20 @@ class ManagedSwitchConfig:
         self._event_listeners = await create_event_listeners( self._hass, self.blueprint, self.identifier, _processIncoming )
 
     def stop(self):
+        # Restart-safe teardown: cancel in-flight runs but keep Script objects reusable
+        # (start() calls stop() to restart, e.g. after setEnabled()).
+        self._remove_event_listeners()
         self.stop_running_scripts()
+
+    def unload(self):
+        # Discard teardown: remove listeners and fully unload Scripts to release their
+        # resources (cached conditions/sub-scripts). Use when the config is removed or
+        # reloaded, never as a restart. As of HA 2026.5, Script.async_unload() must be
+        # called when a script is no longer needed.
+        self._remove_event_listeners()
+        self.unload_scripts()
+
+    def _remove_event_listeners( self ):
         if self._event_listeners:
             for listener in self._event_listeners:
                 listener()
@@ -411,6 +426,13 @@ class ManagedSwitchConfig:
             for action in button.actions:
                 if action.script:
                     self._hass.async_create_task( action.script.async_stop() )
+
+    def unload_scripts( self ):
+        for button in self.buttons:
+            for action in button.actions:
+                if action.script:
+                    self._hass.async_create_task( action.script.async_unload() )
+                    action.script = None
                     
     def setEnabled( self, value: bool ):
         self.enabled = value

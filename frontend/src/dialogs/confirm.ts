@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
-import { customElement, property, state } from "lit/decorators.js";
+import { customElement, state } from "lit/decorators.js";
+import "../switch-manager-dialog";
 
 @customElement("switch-manager-dialog-confirm")
 export class SwitchManagerDialogConfirm extends LitElement {
@@ -16,26 +17,30 @@ export class SwitchManagerDialogConfirm extends LitElement {
   render() {
     if (!this._params) return html``;
     return html`
-      <ha-dialog
-        open
+      <switch-manager-dialog
         @closed=${this._dismiss}
         .heading=${this._params.title || "Confirm"}
       >
         <div>${this._params.text || ""}</div>
         ${this._params.prompt
-          ? html`<ha-textfield id="prompt-input" .value=${this._params.promptValue || ""}></ha-textfield>`
+          ? html`<input
+              id="prompt-input"
+              class="text-input"
+              type="text"
+              .value=${this._params.promptValue || ""}
+            />`
           : ""}
-        <mwc-button slot="secondaryAction" @click=${this._dismiss}>
+        <button slot="actions" @click=${this._dismiss}>
           ${this._params.dismissText || "Cancel"}
-        </mwc-button>
-        <mwc-button
-          slot="primaryAction"
+        </button>
+        <button
+          slot="actions"
           @click=${this._confirm}
           class=${this._params.destructive ? "destructive" : ""}
         >
           ${this._params.confirmText || "OK"}
-        </mwc-button>
-      </ha-dialog>
+        </button>
+      </switch-manager-dialog>
     `;
   }
 
@@ -50,8 +55,16 @@ export class SwitchManagerDialogConfirm extends LitElement {
   }
 
   static styles = css`
-    .destructive {
-      --mdc-theme-primary: var(--error-color);
+    .text-input {
+      width: 100%;
+      box-sizing: border-box;
+      margin-top: 8px;
+      padding: 10px 12px;
+      border: 1px solid var(--divider-color, rgba(127, 127, 127, 0.3));
+      border-radius: 6px;
+      background: var(--secondary-background-color, transparent);
+      color: var(--primary-text-color);
+      font: inherit;
     }
   `;
 }

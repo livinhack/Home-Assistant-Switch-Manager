@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { customElement, state } from "lit/decorators.js";
+import "../switch-manager-dialog";
 
 @customElement("switch-manager-dialog-rename-switch")
 export class SwitchManagerDialogRenameSwitch extends LitElement {
@@ -19,21 +20,19 @@ export class SwitchManagerDialogRenameSwitch extends LitElement {
   render() {
     if (!this._params) return html``;
     return html`
-      <ha-dialog open @closed=${this.closeDialog} heading="Rename Switch">
-        <ha-textfield
+      <switch-manager-dialog @closed=${this.closeDialog} heading="Rename Switch">
+        <input
+          class="text-input"
+          type="text"
+          placeholder="Name"
           .value=${this._name}
+          autofocus
           @input=${(e: InputEvent) =>
             (this._name = (e.target as HTMLInputElement).value)}
-          label="Name"
-          dialogInitialFocus
-        ></ha-textfield>
-        <mwc-button slot="secondaryAction" @click=${this.closeDialog}>
-          Cancel
-        </mwc-button>
-        <mwc-button slot="primaryAction" @click=${this._save}>
-          Save
-        </mwc-button>
-      </ha-dialog>
+        />
+        <button slot="actions" @click=${this.closeDialog}>Cancel</button>
+        <button slot="actions" @click=${this._save}>Save</button>
+      </switch-manager-dialog>
     `;
   }
 
@@ -45,8 +44,19 @@ export class SwitchManagerDialogRenameSwitch extends LitElement {
   }
 
   static styles = css`
-    ha-textfield {
+    .text-input {
       width: 100%;
+      box-sizing: border-box;
+      padding: 10px 12px;
+      border: 1px solid var(--divider-color, rgba(127, 127, 127, 0.3));
+      border-radius: 6px;
+      background: var(--secondary-background-color, transparent);
+      color: var(--primary-text-color);
+      font: inherit;
+    }
+    .text-input:focus {
+      outline: none;
+      border-color: var(--primary-color);
     }
   `;
 }
