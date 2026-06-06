@@ -7,11 +7,11 @@
 > **This is a maintained fork of [Sian-Lee-SA/Home-Assistant-Switch-Manager](https://github.com/Sian-Lee-SA/Home-Assistant-Switch-Manager)**, which appears to be abandoned.
 >
 > **What's new:**
-> - **v4 (now in beta) — frontend rebuilt on Home Assistant's *current* runtime components** instead of a frozen, bundled copy. This removes the long-standing drift problem and fixes the action editor on recent HA versions: the `input_select` **Option** dropdown opens again, **Targets** resolve entities/devices/areas/labels, and you get HA's modern **"Add action"** picker. Legacy UI chrome (menus, dialogs, tabs) was replaced with self-contained, drift-proof components.
+> - **v4 — frontend rebuilt on Home Assistant's *current* runtime components** instead of a frozen, bundled copy. This removes the long-standing drift problem and fixes the action editor on recent HA versions: the `input_select` **Option** dropdown opens again, **Targets** resolve entities/devices/areas/labels, and you get HA's modern **"Add action"** picker. Legacy UI chrome (menus, dialogs, tabs) was replaced with self-contained, drift-proof components.
 > - Backend updated for **Home Assistant 2026.x** (e.g. the `Script.async_unload()` deprecation).
 > - Lots of community switch blueprints integrated, plus duplicate-switch, sortable switch list, blueprint search, and test-firing actions from the editor.
 >
-> See the [releases](https://github.com/macpit/Home-Assistant-Switch-Manager/releases) for details. (v4 is currently a pre-release — enable *"Show beta versions"* in HACS to try it.)
+> See the [releases](https://github.com/macpit/Home-Assistant-Switch-Manager/releases) for details.
 
 ## Roadmap
 
