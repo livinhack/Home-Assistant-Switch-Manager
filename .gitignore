@@ -11,3 +11,6 @@
 # Frontend
 frontend/node_modules/
 frontend/dist/
+
+# Local AI assistant instructions (kept locally, not tracked)
+CLAUDE.md
