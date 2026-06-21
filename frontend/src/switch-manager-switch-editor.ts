@@ -474,7 +474,10 @@ export class SwitchManagerSwitchEditor extends LitElement {
   private _validate(): boolean {
     this._errors = undefined;
     if (!this.config?.identifier) {
-      this._showIdentifierAutoDiscoveryDialog();
+      // Opened from the save flow: once an identifier is set, continue the
+      // interrupted save so it is actually persisted (fixes the popup
+      // re-appearing on every save when the stored identifier is empty).
+      this._showIdentifierAutoDiscoveryDialog(true);
       return false;
     }
     return true;
@@ -621,7 +624,7 @@ export class SwitchManagerSwitchEditor extends LitElement {
     );
   }
 
-  private _showIdentifierAutoDiscoveryDialog() {
+  private _showIdentifierAutoDiscoveryDialog(continueSave = false) {
     showDialog(
       this,
       "switch-manager-dialog-identifier-auto-discovery",
@@ -634,6 +637,9 @@ export class SwitchManagerSwitchEditor extends LitElement {
           this.config!.identifier = data.identifier;
           this._dirty = true;
           this.requestUpdate();
+          // When the dialog interrupted a save (missing identifier), persist
+          // immediately instead of forcing the user to press Save again.
+          if (continueSave && data.identifier) this._save();
         },
         onClose: () => {},
       }
