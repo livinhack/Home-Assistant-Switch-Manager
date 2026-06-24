@@ -25,3 +25,11 @@ buttons:
         conditions:
           - key: payload
             value: double_down
+      - title: hold
+        conditions:
+          - key: payload
+            value: hold_down
+      - title: hold (released) 
+        conditions:
+          - key: payload
+            value: release_down
