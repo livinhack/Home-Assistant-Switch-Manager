@@ -58,6 +58,12 @@ class Blueprint:
         self.name = config.get('name')
         self.has_image = has_image
         self.service = config.get('service')
+        # Optional: distinguishes multiple blueprints for the SAME physical
+        # device + protocol that differ only in control logic/behaviour
+        # (e.g. a Shelly configured as a momentary button vs. as a relay
+        # switch). Unlike `service`, this is NOT a different integration -
+        # it's a different operating mode of the same hardware+protocol.
+        self.variant = config.get('variant')
         self.event_type = config.get('event_type')
         self.is_mqtt = self.event_type == 'mqtt'
         self.mqtt_topic_format = config.get('mqtt_topic_format', None)

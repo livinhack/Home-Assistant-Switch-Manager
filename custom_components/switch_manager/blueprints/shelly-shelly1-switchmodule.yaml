@@ -1,4 +1,5 @@
-name: Shelly 1 (switch)
+name: Shelly 1
+variant: Switch
 service: Shelly
 event_type: state_changed
 identifier_key: entity_id

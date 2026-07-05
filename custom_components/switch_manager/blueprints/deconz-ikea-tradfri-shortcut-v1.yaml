@@ -1,4 +1,4 @@
-name: Ikea Trådfri Shortcut button E1812
+name: Ikea Trådfri Shortcut button
 service: deCONZ
 event_type: deconz_event
 identifier_key: id

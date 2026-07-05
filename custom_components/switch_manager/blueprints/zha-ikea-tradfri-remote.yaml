@@ -1,4 +1,4 @@
-name: IKEA TRÅDFRI Remote
+name: Ikea Trådfri Remote
 service: ZHA
 event_type: zha_event
 identifier_key: device_id

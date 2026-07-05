@@ -1,4 +1,4 @@
-name: Ikea Trådfri Shortcut button E1812
+name: Ikea Trådfri Shortcut button
 service: ZHA
 event_type: zha_event
 identifier_key: device_id

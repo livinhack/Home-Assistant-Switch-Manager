@@ -57,6 +57,10 @@ export interface Blueprint {
   name: string;
   service: string;
   has_image: boolean;
+  // Distinguishes multiple blueprints for the SAME device + protocol that
+  // differ only in control logic (e.g. a Shelly used as a button vs. as a
+  // relay switch). Not set for blueprints where there's only one variant.
+  variant?: string;
   event_type: string;
   identifier_key: string;
   mqtt_topic_format?: string;

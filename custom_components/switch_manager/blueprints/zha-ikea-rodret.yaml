@@ -1,4 +1,4 @@
-name: IKEA RODRET wireless dimmer
+name: IKEA Rodret
 service: ZHA
 event_type: zha_event
 identifier_key: device_id

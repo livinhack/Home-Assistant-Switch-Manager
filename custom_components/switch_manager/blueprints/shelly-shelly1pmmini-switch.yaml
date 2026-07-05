@@ -1,4 +1,5 @@
-name: Shelly 1pm mini Gen3 (switch)
+name: Shelly 1pm mini Gen3
+variant: Switch
 service: Shelly
 event_type: state_changed
 identifier_key: entity_id

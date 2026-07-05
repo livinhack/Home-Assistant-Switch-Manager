@@ -1,4 +1,4 @@
-name: Ikea Rodret
+name: IKEA Rodret
 service: deCONZ
 event_type: deconz_event
 identifier_key: id

@@ -1,7 +1,8 @@
 # Event mode triggering (operation_mode = event)
 # https://www.zigbee2mqtt.io/devices/ZG-101ZD.html
 
-name: Moes ZG-101ZD (TS004F) - Event
+name: Moes ZG-101ZD (TS004F)
+variant: Event
 service: Zigbee2MQTT
 event_type: mqtt
 mqtt_topic_format: zigbee2mqtt/+/action

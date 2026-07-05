@@ -1,4 +1,5 @@
-name: Shelly 1pm mini Gen3 (button)
+name: Shelly 1pm mini Gen3
+variant: Button
 service: Shelly
 event_type: shelly.click
 identifier_key: device_id
