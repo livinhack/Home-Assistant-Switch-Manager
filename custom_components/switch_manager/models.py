@@ -68,6 +68,11 @@ class Blueprint:
         # family (e.g. "Aqara Wireless Mini Switch" and its "E1" revision).
         # Falls back to `name` at the frontend if unset.
         self.device_group = config.get('device_group')
+        # Display-only grouping key for the variant cascade step. Falls
+        # back to `name` at the frontend when unset - `name` itself is
+        # NEVER merged, so distinct products stay distinguishable even
+        # when shown as one point in the UI.
+        self.device_variant = config.get('device_variant')
         # Cosmetic manufacturer/brand label for badge display only.
         self.brand = config.get('brand')
         self.event_type = config.get('event_type')

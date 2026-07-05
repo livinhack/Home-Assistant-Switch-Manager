@@ -65,6 +65,9 @@ export interface Blueprint {
   // family, e.g. standard vs. "E1") under one top-level card. Falls back
   // to `name` when unset.
   device_group?: string;
+  // Display-only grouping for the variant cascade step. Falls back to
+  // `name` when unset. `name` itself stays untouched/distinct.
+  device_variant?: string;
   // Cosmetic manufacturer label for badge display (e.g. "TuYa", "Moes").
   brand?: string;
   event_type: string;

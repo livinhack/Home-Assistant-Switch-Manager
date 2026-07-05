@@ -45,6 +45,12 @@ BLUEPRINT_SCHEMA = vol.Schema({
     # picker. Falls back to `name` when not set, so existing blueprints
     # are unaffected.
     vol.Optional('device_group'): cv.string,
+    # Display-only grouping for the "device variant" cascade step. Lets
+    # several DISTINCT `name` entries (kept separate on purpose, e.g. in
+    # case a firmware difference later requires splitting them again)
+    # appear as one selectable point in the UI, without merging their
+    # actual identity.
+    vol.Optional('device_variant'): cv.string,
     # Cosmetic-only manufacturer label shown as a small badge, used to
     # keep whitelabeled/rebranded hardware (e.g. the same TS0044 chipset
     # sold as TuYa/Moes/Zignito) findable by the name printed on the box,

@@ -84,9 +84,10 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
   private _variants(family: { blueprints: Blueprint[] }): DeviceVariant[] {
     const map = new Map<string, Blueprint[]>();
     for (const bp of family.blueprints) {
-      const list = map.get(bp.name);
+      const key = bp.device_variant || bp.name;
+      const list = map.get(key);
       if (list) list.push(bp);
-      else map.set(bp.name, [bp]);
+      else map.set(key, [bp]);
     }
     return Array.from(map.entries())
       .map(([name, blueprints]) => ({
@@ -179,9 +180,9 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
                         (sg) => html`
                           <span class="protocol-badge">
                             ${sg.service}
-                            ${sg.blueprints.length > 1
+                            ${this._distinctModes(sg).length > 1
                               ? html`<span class="variant-count"
-                                  >${sg.blueprints.length}</span
+                                  >${this._distinctModes(sg).length}</span
                                 >`
                               : ""}
                           </span>
@@ -236,9 +237,9 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
                         (sg) => html`
                           <span class="protocol-badge">
                             ${sg.service}
-                            ${sg.blueprints.length > 1
+                            ${this._distinctModes(sg).length > 1
                               ? html`<span class="variant-count"
-                                  >${sg.blueprints.length}</span
+                                  >${this._distinctModes(sg).length}</span
                                 >`
                               : ""}
                           </span>
