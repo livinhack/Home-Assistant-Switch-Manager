@@ -39,7 +39,17 @@ BLUEPRINT_SCHEMA = vol.Schema({
     vol.Required('buttons'): vol.All(cv.ensure_list, [BLUEPRINT_BUTTON_SCHEMA]),
     vol.Optional('conditions', default=[]): vol.Any(cv.string, [CONDITION_SCHEMA]),
     vol.Optional('info'): cv.string,
-    vol.Optional('variant'): cv.string
+    vol.Optional('variant'): cv.string,
+    # Groups multiple `name` entries (device hardware variants, e.g. an
+    # original vs. an "E1" revision) under one top-level card in the
+    # picker. Falls back to `name` when not set, so existing blueprints
+    # are unaffected.
+    vol.Optional('device_group'): cv.string,
+    # Cosmetic-only manufacturer label shown as a small badge, used to
+    # keep whitelabeled/rebranded hardware (e.g. the same TS0044 chipset
+    # sold as TuYa/Moes/Zignito) findable by the name printed on the box,
+    # even when several such blueprints are collapsed into one `name`.
+    vol.Optional('brand'): cv.string
 })
 BLUEPRINT_EVENT_SCHEMA = BLUEPRINT_SCHEMA.extend({
     vol.Required('identifier_key'): cv.string

@@ -1,4 +1,6 @@
 name: TuYa 4 Button Scene (TS0044)
+device_group: 4 Button Scene (TS0044)
+brand: TuYa
 service: ZHA
 event_type: zha_event
 identifier_key: device_id

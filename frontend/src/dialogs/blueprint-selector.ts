@@ -7,16 +7,26 @@ import "../switch-manager-dialog";
 const iconPath =
   "M13 5C15.21 5 17 6.79 17 9C17 10.5 16.2 11.77 15 12.46V11.24C15.61 10.69 16 9.89 16 9C16 7.34 14.66 6 13 6S10 7.34 10 9C10 9.89 10.39 10.69 11 11.24V12.46C9.8 11.77 9 10.5 9 9C9 6.79 10.79 5 13 5M20 20.5C19.97 21.32 19.32 21.97 18.5 22H13C12.62 22 12.26 21.85 12 21.57L8 17.37L8.74 16.6C8.93 16.39 9.2 16.28 9.5 16.28H9.7L12 18V9C12 8.45 12.45 8 13 8S14 8.45 14 9V13.47L15.21 13.6L19.15 15.79C19.68 16.03 20 16.56 20 17.14V20.5M20 2H4C2.9 2 2 2.9 2 4V12C2 13.11 2.9 14 4 14H8V12L4 12L4 4H20L20 12H18V14H20V13.96L20.04 14C21.13 14 22 13.09 22 12V4C22 2.9 21.11 2 20 2Z";
 
-interface BlueprintGroup {
+// The picker is a 4-level cascade, each level only shown when there's an
+// actual choice to make (auto-skipped otherwise):
+//
+//   DeviceFamily  (device_group, falls back to name)
+//     -> DeviceVariant  (name - a hardware/brand variant of the family,
+//                         e.g. "standard" vs. "E1", or "TuYa" vs. "Moes/Zignito")
+//         -> ServiceGroup  (service - the integration/protocol, e.g. ZHA)
+//             -> OperatingMode  (variant - same device+protocol, different
+//                                 behaviour, e.g. Shelly as button vs. switch)
+
+interface DeviceFamily {
+  key: string;
+  blueprints: Blueprint[];
+}
+
+interface DeviceVariant {
   name: string;
   blueprints: Blueprint[];
 }
 
-// All blueprints for one device that share the same `service` (protocol).
-// If this contains more than one blueprint, they're not different
-// hardware/protocols - they're different operating modes of the SAME
-// device+protocol combo (e.g. a Shelly used as a button vs. as a relay
-// switch), distinguished by `variant`.
 interface ServiceGroup {
   service: string;
   blueprints: Blueprint[];
@@ -27,11 +37,8 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
   @state() private _params?: any;
   @state() private _blueprints: Blueprint[] = [];
   @state() private _filter = "";
-  // Set once the user picked a device that has more than one protocol
-  // available, so we can show the second ("choose protocol") step.
-  @state() private _selectedGroupName?: string;
-  // Set once the user picked (or we auto-picked) a protocol that has more
-  // than one variant, so we can show the third ("choose variant") step.
+  @state() private _selectedFamilyKey?: string;
+  @state() private _selectedVariantName?: string;
   @state() private _selectedService?: string;
   private hass!: HomeAssistant;
 
@@ -45,7 +52,8 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
     this._params = undefined;
     this._blueprints = [];
     this._filter = "";
-    this._selectedGroupName = undefined;
+    this._selectedFamilyKey = undefined;
+    this._selectedVariantName = undefined;
     this._selectedService = undefined;
   }
 
@@ -56,12 +64,26 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
     this._blueprints = Object.values(res.blueprints);
   }
 
-  // Collapse blueprints that describe the same physical device (identical
-  // `name`) into a single group, keeping every protocol variant available
-  // under it (e.g. ZHA + Zigbee2MQTT for the same remote).
-  private _groups(): BlueprintGroup[] {
+  private _familyKey(bp: Blueprint): string {
+    return bp.device_group || bp.name;
+  }
+
+  private _families(): DeviceFamily[] {
     const map = new Map<string, Blueprint[]>();
     for (const bp of this._blueprints) {
+      const key = this._familyKey(bp);
+      const list = map.get(key);
+      if (list) list.push(bp);
+      else map.set(key, [bp]);
+    }
+    return Array.from(map.entries())
+      .map(([key, blueprints]) => ({ key, blueprints }))
+      .sort((a, b) => a.key.localeCompare(b.key));
+  }
+
+  private _variants(family: { blueprints: Blueprint[] }): DeviceVariant[] {
+    const map = new Map<string, Blueprint[]>();
+    for (const bp of family.blueprints) {
       const list = map.get(bp.name);
       if (list) list.push(bp);
       else map.set(bp.name, [bp]);
@@ -74,12 +96,9 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
       .sort((a, b) => a.name.localeCompare(b.name));
   }
 
-  // Within a device group, collapse blueprints further by `service`. A
-  // service group with more than one blueprint means: same device, same
-  // protocol, but multiple operating-mode variants to choose from.
-  private _serviceGroups(group: BlueprintGroup): ServiceGroup[] {
+  private _serviceGroups(variant: { blueprints: Blueprint[] }): ServiceGroup[] {
     const map = new Map<string, Blueprint[]>();
-    for (const bp of group.blueprints) {
+    for (const bp of variant.blueprints) {
       const list = map.get(bp.service);
       if (list) list.push(bp);
       else map.set(bp.service, [bp]);
@@ -94,20 +113,39 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
       .sort((a, b) => a.service.localeCompare(b.service));
   }
 
+  // Distinct, meaningful operating-mode labels within a service group.
+  // Pure duplicate blueprints (same device+protocol, no `variant` set,
+  // e.g. leftover whitelabel copies) don't count as a real choice.
+  private _distinctModes(serviceGroup: ServiceGroup): string[] {
+    return Array.from(
+      new Set(serviceGroup.blueprints.map((bp) => bp.variant).filter((v): v is string => !!v))
+    );
+  }
+
+  private _brands(blueprints: Blueprint[]): string[] {
+    return Array.from(new Set(blueprints.map((bp) => bp.brand).filter((b): b is string => !!b)));
+  }
+
   render() {
     if (!this._params) return html``;
-    if (this._selectedService) return this._renderVariantStep();
-    if (this._selectedGroupName) return this._renderProtocolStep();
+    if (this._selectedService) return this._renderModeStep();
+    if (this._selectedVariantName) return this._renderProtocolStep();
+    if (this._selectedFamilyKey) return this._renderVariantStep();
     return this._renderDeviceStep();
   }
 
   private _renderDeviceStep() {
     const filter = this._filter.toLowerCase();
-    const groups = this._groups().filter(
-      (g) =>
+    const families = this._families().filter(
+      (f) =>
         !filter ||
-        g.name.toLowerCase().includes(filter) ||
-        g.blueprints.some((bp) => bp.service.toLowerCase().includes(filter))
+        f.key.toLowerCase().includes(filter) ||
+        f.blueprints.some(
+          (bp) =>
+            bp.name.toLowerCase().includes(filter) ||
+            bp.service.toLowerCase().includes(filter) ||
+            bp.brand?.toLowerCase().includes(filter)
+        )
     );
 
     return html`
@@ -121,20 +159,78 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
             (this._filter = (e.target as HTMLInputElement).value)}
         />
         <div class="blueprints">
-          ${groups.map((group) => {
+          ${families.map((family) => {
             const thumb =
-              group.blueprints.find((bp) => bp.has_image) ?? group.blueprints[0];
-            const serviceGroups = this._serviceGroups(group);
+              family.blueprints.find((bp) => bp.has_image) ?? family.blueprints[0];
+            const serviceGroups = this._serviceGroups(family);
+            const brands = this._brands(family.blueprints);
             return html`
               <ha-card
                 outlined
                 class="blueprint-item"
-                @click=${() => this._selectGroup(group)}
+                @click=${() => this._selectFamily(family)}
               >
                 <div class="card-content">
-                  ${this._renderThumb(thumb)}
+                  ${this._renderThumb(thumb, brands)}
                   <div class="info">
-                    <div class="name">${group.name}</div>
+                    <div class="name">${family.key}</div>
+                    <div class="protocols">
+                      ${serviceGroups.map(
+                        (sg) => html`
+                          <span class="protocol-badge">
+                            ${sg.service}
+                            ${sg.blueprints.length > 1
+                              ? html`<span class="variant-count"
+                                  >${sg.blueprints.length}</span
+                                >`
+                              : ""}
+                          </span>
+                        `
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </ha-card>
+            `;
+          })}
+        </div>
+        <button slot="actions" @click=${this.closeDialog}>Cancel</button>
+      </switch-manager-dialog>
+    `;
+  }
+
+  private _renderVariantStep() {
+    const family = this._families().find((f) => f.key === this._selectedFamilyKey);
+    if (!family) {
+      this._selectedFamilyKey = undefined;
+      return html``;
+    }
+    const variants = this._variants(family);
+
+    return html`
+      <switch-manager-dialog @closed=${this.closeDialog} heading="Select Variant">
+        <div class="protocol-header">
+          <button class="back" @click=${() => (this._selectedFamilyKey = undefined)}>
+            ← Back
+          </button>
+          <div class="protocol-device-name">${family.key}</div>
+        </div>
+        <div class="blueprints">
+          ${variants.map((variant) => {
+            const thumb =
+              variant.blueprints.find((bp) => bp.has_image) ?? variant.blueprints[0];
+            const serviceGroups = this._serviceGroups(variant);
+            const brands = this._brands(variant.blueprints);
+            return html`
+              <ha-card
+                outlined
+                class="blueprint-item"
+                @click=${() => this._selectVariant(variant)}
+              >
+                <div class="card-content">
+                  ${this._renderThumb(thumb, brands)}
+                  <div class="info">
+                    <div class="name">${variant.name}</div>
                     <div class="protocols">
                       ${serviceGroups.map(
                         (sg) => html`
@@ -161,21 +257,34 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
   }
 
   private _renderProtocolStep() {
-    const group = this._groups().find((g) => g.name === this._selectedGroupName);
-    if (!group) {
-      // Blueprints changed under us (e.g. reload) - fall back safely.
-      this._selectedGroupName = undefined;
+    const family = this._families().find((f) => f.key === this._selectedFamilyKey);
+    const variant = family
+      ? this._variants(family).find((v) => v.name === this._selectedVariantName)
+      : undefined;
+    if (!family || !variant) {
+      this._selectedFamilyKey = undefined;
+      this._selectedVariantName = undefined;
       return html``;
     }
-    const serviceGroups = this._serviceGroups(group);
+    const serviceGroups = this._serviceGroups(variant);
+    // Was the variant step actually shown on the way in?
+    const cameFromVariantStep = this._variants(family).length > 1;
 
     return html`
       <switch-manager-dialog @closed=${this.closeDialog} heading="Select Protocol">
         <div class="protocol-header">
-          <button class="back" @click=${() => (this._selectedGroupName = undefined)}>
+          <button
+            class="back"
+            @click=${() => {
+              this._selectedVariantName = undefined;
+              if (!cameFromVariantStep) this._selectedFamilyKey = undefined;
+            }}
+          >
             ← Back
           </button>
-          <div class="protocol-device-name">${group.name}</div>
+          <div class="protocol-device-name">
+            ${family.key}${cameFromVariantStep ? html` · ${variant.name}` : ""}
+          </div>
         </div>
         <div class="blueprints">
           ${serviceGroups.map(
@@ -186,16 +295,13 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
                 @click=${() => this._selectServiceGroup(sg)}
               >
                 <div class="card-content">
-                  ${this._renderThumb(sg.blueprints[0])}
+                  ${this._renderThumb(sg.blueprints[0], this._brands(sg.blueprints))}
                   <div class="info">
                     <div class="name">${sg.service}</div>
-                    ${sg.blueprints.length > 1
+                    ${this._distinctModes(sg).length > 1
                       ? html`<div class="protocols">
-                          ${sg.blueprints.map(
-                            (bp) =>
-                              html`<span class="variant-badge"
-                                >${bp.variant}</span
-                              >`
+                          ${this._distinctModes(sg).map(
+                            (m) => html`<span class="variant-badge">${m}</span>`
                           )}
                         </div>`
                       : ""}
@@ -210,24 +316,24 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
     `;
   }
 
-  private _renderVariantStep() {
-    const group = this._groups().find((g) => g.name === this._selectedGroupName);
-    const serviceGroup = group
-      ?.blueprints // rebuild from the live group rather than trusting stale references
-      ? this._serviceGroups(group).find((sg) => sg.service === this._selectedService)
+  private _renderModeStep() {
+    const family = this._families().find((f) => f.key === this._selectedFamilyKey);
+    const variant = family
+      ? this._variants(family).find((v) => v.name === this._selectedVariantName)
+      : undefined;
+    const serviceGroup = variant
+      ? this._serviceGroups(variant).find((sg) => sg.service === this._selectedService)
       : undefined;
 
-    if (!group || !serviceGroup) {
-      // Blueprints changed under us (e.g. reload) - fall back safely.
-      this._selectedGroupName = undefined;
+    if (!family || !variant || !serviceGroup) {
+      this._selectedFamilyKey = undefined;
+      this._selectedVariantName = undefined;
       this._selectedService = undefined;
       return html``;
     }
 
-    // If the device only has this one protocol, the protocol step was
-    // skipped on the way in, so "Back" should return to the device step
-    // instead of a protocol step the user never saw.
-    const cameFromProtocolStep = this._serviceGroups(group).length > 1;
+    const cameFromProtocolStep = this._serviceGroups(variant).length > 1;
+    const cameFromVariantStep = this._variants(family).length > 1;
 
     return html`
       <switch-manager-dialog @closed=${this.closeDialog} heading="Select Mode">
@@ -236,13 +342,18 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
             class="back"
             @click=${() => {
               this._selectedService = undefined;
-              if (!cameFromProtocolStep) this._selectedGroupName = undefined;
+              if (!cameFromProtocolStep) {
+                this._selectedVariantName = undefined;
+                if (!cameFromVariantStep) this._selectedFamilyKey = undefined;
+              }
             }}
           >
             ← Back
           </button>
           <div class="protocol-device-name">
-            ${group.name}${cameFromProtocolStep ? html` · ${serviceGroup.service}` : ""}
+            ${family.key}${cameFromVariantStep ? html` · ${variant.name}` : ""}${cameFromProtocolStep
+              ? html` · ${serviceGroup.service}`
+              : ""}
           </div>
         </div>
         <div class="blueprints">
@@ -254,7 +365,7 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
                 @click=${() => this._selectBlueprint(bp)}
               >
                 <div class="card-content">
-                  ${this._renderThumb(bp)}
+                  ${this._renderThumb(bp, bp.brand ? [bp.brand] : [])}
                   <div class="info">
                     <div class="name">${bp.variant ?? bp.service}</div>
                   </div>
@@ -268,33 +379,58 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
     `;
   }
 
-  private _renderThumb(bp: Blueprint) {
+  private _renderThumb(bp: Blueprint, brands: string[] = []) {
     return html`
       <div class="image">
         ${bp.has_image
           ? html`<img src="${assetUrl(bp.id + ".png")}" />`
           : html`<ha-svg-icon .path=${iconPath}></ha-svg-icon>`}
+        ${brands.length
+          ? html`<div class="brand-badges">
+              ${brands.map((b) => html`<span class="brand-badge">${b}</span>`)}
+            </div>`
+          : ""}
       </div>
     `;
   }
 
-  private _selectGroup(group: BlueprintGroup) {
-    if (group.blueprints.length === 1) {
-      this._selectBlueprint(group.blueprints[0]);
+  private _selectFamily(family: DeviceFamily) {
+    if (family.blueprints.length === 1) {
+      this._selectBlueprint(family.blueprints[0]);
       return;
     }
-    const serviceGroups = this._serviceGroups(group);
+    const variants = this._variants(family);
+    if (variants.length === 1) {
+      this._selectedFamilyKey = family.key;
+      this._selectVariant(variants[0]);
+      return;
+    }
+    this._selectedFamilyKey = family.key;
+  }
+
+  private _selectVariant(variant: DeviceVariant) {
+    if (variant.blueprints.length === 1) {
+      this._selectBlueprint(variant.blueprints[0]);
+      return;
+    }
+    const serviceGroups = this._serviceGroups(variant);
     if (serviceGroups.length === 1) {
-      // Only one protocol - skip straight to the variant step.
-      this._selectedGroupName = group.name;
+      this._selectedVariantName = variant.name;
       this._selectServiceGroup(serviceGroups[0]);
       return;
     }
-    this._selectedGroupName = group.name;
+    this._selectedVariantName = variant.name;
   }
 
   private _selectServiceGroup(serviceGroup: ServiceGroup) {
     if (serviceGroup.blueprints.length === 1) {
+      this._selectBlueprint(serviceGroup.blueprints[0]);
+      return;
+    }
+    if (this._distinctModes(serviceGroup).length <= 1) {
+      // No meaningful choice (e.g. leftover duplicate whitelabel
+      // blueprints with no distinct operating mode) - just proceed with
+      // one of them, they're functionally identical.
       this._selectBlueprint(serviceGroup.blueprints[0]);
       return;
     }
@@ -326,6 +462,7 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
       padding: 8px;
     }
     .image {
+      position: relative;
       height: 80px;
       display: flex;
       align-items: center;
@@ -339,6 +476,25 @@ export class SwitchManagerDialogBlueprintSelector extends LitElement {
       fill: var(--primary-color);
       width: 60px;
       height: 60px;
+    }
+    .brand-badges {
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+    .brand-badge {
+      background: var(--primary-color);
+      color: var(--text-primary-color, #fff);
+      font-size: 0.65em;
+      font-weight: 500;
+      padding: 1px 5px;
+      border-radius: 4px;
+      line-height: 1.4;
+      white-space: nowrap;
     }
     .name {
       font-weight: 500;

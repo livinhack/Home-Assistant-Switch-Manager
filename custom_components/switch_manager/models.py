@@ -64,6 +64,12 @@ class Blueprint:
         # switch). Unlike `service`, this is NOT a different integration -
         # it's a different operating mode of the same hardware+protocol.
         self.variant = config.get('variant')
+        # Top-level grouping key for hardware variants of the same device
+        # family (e.g. "Aqara Wireless Mini Switch" and its "E1" revision).
+        # Falls back to `name` at the frontend if unset.
+        self.device_group = config.get('device_group')
+        # Cosmetic manufacturer/brand label for badge display only.
+        self.brand = config.get('brand')
         self.event_type = config.get('event_type')
         self.is_mqtt = self.event_type == 'mqtt'
         self.mqtt_topic_format = config.get('mqtt_topic_format', None)

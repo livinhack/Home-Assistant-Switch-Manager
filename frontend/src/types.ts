@@ -61,6 +61,12 @@ export interface Blueprint {
   // differ only in control logic (e.g. a Shelly used as a button vs. as a
   // relay switch). Not set for blueprints where there's only one variant.
   variant?: string;
+  // Groups multiple `name` values (hardware variants of the same device
+  // family, e.g. standard vs. "E1") under one top-level card. Falls back
+  // to `name` when unset.
+  device_group?: string;
+  // Cosmetic manufacturer label for badge display (e.g. "TuYa", "Moes").
+  brand?: string;
   event_type: string;
   identifier_key: string;
   mqtt_topic_format?: string;

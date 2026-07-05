@@ -1,5 +1,5 @@
-name: Aqara Wireless Mini Switch (+E1)
-variant: Aqara Wireless Mini Switch
+name: Aqara Wireless Mini Switch
+device_group: Aqara Wireless Mini Switch (+E1)
 service: ZHA
 event_type: zha_event
 identifier_key: device_id

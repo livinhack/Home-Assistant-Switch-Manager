@@ -1,4 +1,6 @@
-name: Zignito 4 Button Scene
+name: Moes / Zignito 4 Button Scene (TS0044)
+device_group: 4 Button Scene (TS0044)
+brand: Zignito
 service: Zigbee2MQTT
 event_type: mqtt
 mqtt_topic_format: zigbee2mqtt/+/action

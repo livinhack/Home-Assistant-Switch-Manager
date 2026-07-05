@@ -1,4 +1,4 @@
-name: tint Remote 404049
+name: Müller-Licht Tint Remote (404049)
 service: Zigbee2MQTT
 event_type: mqtt
 mqtt_topic_format: zigbee2mqtt/+

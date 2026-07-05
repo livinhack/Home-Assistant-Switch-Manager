@@ -1,5 +1,5 @@
-name: Aqara Wireless Mini Switch (+E1)
-variant: Aqara E1 Wireless Mini Switch
+name: Aqara E1 Wireless Mini Switch
+device_group: Aqara Wireless Mini Switch (+E1)
 service: Zigbee2MQTT
 event_type: mqtt
 mqtt_topic_format: zigbee2mqtt/+/action
