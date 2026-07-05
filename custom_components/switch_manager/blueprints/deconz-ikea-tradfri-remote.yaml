@@ -1,4 +1,4 @@
-name: IKEA TRÅDFRI Fernbedienung
+name: IKEA TRÅDFRI Remote
 service: deCONZ
 event_type: deconz_event
 identifier_key: device_id
