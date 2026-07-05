@@ -1,4 +1,5 @@
-name: Aqara Wireless Mini Switch
+name: Aqara Wireless Mini Switch (+E1)
+variant: Aqara Wireless Mini Switch
 service: deCONZ
 event_type: deconz_event
 identifier_key: device_id

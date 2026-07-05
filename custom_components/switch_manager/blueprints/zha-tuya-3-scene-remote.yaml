@@ -1,4 +1,4 @@
-name: TuYa 3 Button Scene
+name: TuYa 3 Gang
 service: ZHA
 event_type: zha_event
 identifier_key: device_id
