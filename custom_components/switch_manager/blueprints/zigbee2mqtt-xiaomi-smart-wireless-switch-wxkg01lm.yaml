@@ -1,4 +1,4 @@
-name: Xiaomi Smart Wireless Switch (WXKG01LM)
+name: Xiaomi Smart Wireless Switch
 service: Zigbee2MQTT
 event_type: mqtt
 mqtt_topic_format: zigbee2mqtt/+/action
