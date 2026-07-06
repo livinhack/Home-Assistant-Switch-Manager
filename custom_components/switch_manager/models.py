@@ -1,4 +1,5 @@
 import time
+import re
 from .const import DOMAIN, LOGGER
 from .helpers import format_mqtt_message, get_val_from_str
 from homeassistant.core import HomeAssistant, Context, callback
@@ -85,8 +86,22 @@ class Blueprint:
         if self.is_mqtt and not self.mqtt_topic_format:
             return None
 
+        # MQTT '+' is a single-level wildcard, so a device whose name contains
+        # '/' (e.g. "Location on/off" -> zigbee2mqtt/Location on/off/action) adds
+        # an extra topic level that 'zigbee2mqtt/+/action' can never match. For
+        # discovery we therefore subscribe to a multi-level wildcard and match the
+        # original pattern in Python, where '+' is allowed to span '/' too.
+        subscribe_topic = self.mqtt_topic_format
+        topic_matcher = None
+        if self.is_mqtt and '+' in self.mqtt_topic_format:
+            subscribe_topic = self.mqtt_topic_format.split('+', 1)[0] + '#'
+            pattern = re.escape(self.mqtt_topic_format).replace(r'\+', r'.+')
+            topic_matcher = re.compile('^' + pattern + '$')
+
         @callback
         def _processIncoming( data, context ):
+            if topic_matcher and not topic_matcher.match( data.get('topic', '') ):
+                return
             if not self.check_conditions(data):
                 return
 
@@ -98,8 +113,8 @@ class Blueprint:
                         continue
                     _callback( { "identifier": data.get('topic') if self.is_mqtt else data.get(self.identifier_key) } )
                     return
- 
-        listeners = await create_event_listeners( self._hass, self, self.mqtt_topic_format, _processIncoming )
+
+        listeners = await create_event_listeners( self._hass, self, subscribe_topic, _processIncoming )
         return remove_listener
 
     def from_dict(cls, data):

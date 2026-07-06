@@ -13,6 +13,9 @@
 >
 > See the [releases](https://github.com/macpit/Home-Assistant-Switch-Manager/releases) for details.
 
+> ### ⭐ Please star this repo
+> If Switch Manager is useful to you, please give it a **[star](https://github.com/macpit/Home-Assistant-Switch-Manager/stargazers)**. Since this is a maintained fork, more stars help other Home Assistant users find the actively-developed version instead of the abandoned original. It takes a second and means a lot — thank you! 🙏
+
 ## Roadmap
 
 We're looking for community input on what to build next! Vote by opening an [issue](https://github.com/macpit/Home-Assistant-Switch-Manager/issues) or giving a thumbs up.
